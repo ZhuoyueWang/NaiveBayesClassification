@@ -1,7 +1,7 @@
 import numpy as np
 import math
 
-class BayesClassification:
+class DigitBayesClassification:
 
     def __init__(self):
         self.total = 0
@@ -165,10 +165,57 @@ class BayesClassification:
 
 
 
-
-
 def main():
-    traindata =
+    digit = DigitBayesClassification()
+    loc = open('trainIamageOutput.txt','r')
+    traindatas = loc.readlines()
+    loc.close()
+    loc = open('traininglabels','r')
+    trainlabels = loc.readlines()
+    loc.close()
+    loc = open('testIamageOutput.txt','r')
+    testdatas = loc.readlines()
+    loc.close()
+    loc = open('testlabels','r')
+    testlabels = loc.readlines()
+    loc.close()
+
+    for i in range(len(trainlabels)):
+        traindata = traindatas[i].strip()
+        traindata = int(traindata)
+        trainlabel = trainlabels[i].strip()
+        trainlabel = int(trainlabel)
+        if len(trainlabel) == 0:
+            break
+        digit.trainLabel.append(trainlabel)
+        digit.trainSet.append(traindata)
+
+    for i in range(len(testlabels)):
+        testdata = testdatas[i].strip()
+        testdata = int(testdata)
+        testlabel = testlabels[i].strip()
+        testlabel = int(testlabel)
+        if len(testlabel) == 0:
+            break
+        digit.testLabel.append(testLabel)
+        digit.testSet.append(testdata)
+
+    digit.train(digit.trainSet,digit.trainLabel)
+
+    digit.dataTest(digit.testSet)
+
+    digit.printMatrix()
+
+    print('total correct numbers: {}, with odd ratio: {}'.format(digit.numCorrect,digit.numCorrect/digit.total))
+
+    digit.confusionMatrix(8,9)
+    print('\n')
+    digit.confusionMatrix(7,9)
+    print('\n')
+    digit.confusionMatrix(4,9)
+    print('\n')
+    digit.confusionMatrix(5,3)
+    print('\n')
 
 
 if __name__ == "__main__":

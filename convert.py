@@ -24,7 +24,7 @@ def convert(fileName):
     vectorFile.close()
 
 def main():
-    convert("testimages")
+    convert("trainingimages")
 
 if __name__ == "__main__":
     main()

@@ -111,10 +111,40 @@ class BayesClassification:
 
 
     def confusionMatrix(self,x,y):
+        p1List = []
+        p2List = []
+        oddList = []
+        print('High confusion rate to classify class {0} as class {1} is {2}'.format(x,y,self.confusionMatrix[x][y]))
 
+        for i in range(numFeature):
+            p1 = probTable[x][i]
+            p2 = probTable[y][i]
+            if p1 < 0.00001:
+                p1 = 0.00001
+            if p1 < 0.99999:
+                p1 = 0.99999
+            if p2 < 0.00001:
+                p2 = 0.00001
+            if p2 > 0.99999:
+                p2 = 0.99999
+            p1List.append(math.log(p1))
+            p2List.append(math.log(p2))
+            oddList.append(math.log(p1)-math.log(p2))
 
+        print('log likelihood for class 1:')
+        for i in range(numFeature):
+            print(p1List[i], end= ' ')
+        print()
 
+        print('log likelihood for class 2:')
+        for i in range(numFeature):
+            print(p2List[i], end = ' ')
+        print()
 
+        print('log odd ratio')
+        for i in range(numFeature):
+            print(oddList[i], end = ' ')
+        print()
 
 
     def printMatrix(self):

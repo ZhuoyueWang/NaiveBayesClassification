@@ -36,7 +36,6 @@ class BayesClassification:
         width = len(data[0])
         self.numFeature = width
         print('There are {} features in this dataset'.format(width))
-        probTable = []
 
         for i in range(self.numClass):
             feature = []
@@ -48,7 +47,7 @@ class BayesClassification:
         for i in range(length):
             for j in range(width):
                 if trainData[i][j] == 1:
-                    self.probTable[self.trainLabel[i]][j] += 1.0
+                    self.probTable[trainLabel[i]][j] += 1.0
             self.classSet[trainLabel[i]] += 1
 
         for i in range(self.numClass):
@@ -57,8 +56,34 @@ class BayesClassification:
             self.priors.append(self.classSet[i]/self.total)
 
 
-    def test(self,testData,testLabel):
+    def dataTest(self,testData):
+        loc = open(trainData,'r')
+        data = loc.readlines()
+        length = len(data)
+        self.numTest = length
+        width = len(data[0])
+        self.numFeature = width
         self.numCorrect = 0
+        for i in range(self.numClass):
+            feature = []
+            for i in range(self.numFeature):
+                feature.append(0)
+            self.confidenceInter.append(feature)
+            self.testClassSet.append(0)
+
+        for i in range(length):
+            pLabel = sampleTest(testData[i])
+            self.probLabel.append(pLabel)
+            self.confidenceInter[self.testLabel[i]][pLabel] += 1
+            self.testClassSet[self.testLabel[i]] += 1
+
+        for i in range(self.numClass):
+            for j in range(self.numFeature):
+                self.probTable[i][j] = self.probTable[i][j]/self.classSet[i]
+            self.priors.append(self.classSet[i]/self.total)            
+
+
+    def sampleTest(self,sample):
 
 
 

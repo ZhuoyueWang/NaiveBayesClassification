@@ -1,5 +1,5 @@
 import numpy as np
-
+import math
 
 class BayesClassification:
 
@@ -23,6 +23,7 @@ class BayesClassification:
         self.testClassSet = []
         self.confusionMatrix = []
         self.priors = []
+        self.posterior = []
         self.confidenceInter = []
         self.pcp = []
         self.ncp = []
@@ -78,17 +79,41 @@ class BayesClassification:
             self.testClassSet[self.testLabel[i]] += 1
 
         for i in range(self.numClass):
+            feature = []
             for j in range(self.numFeature):
-                self.probTable[i][j] = self.probTable[i][j]/self.classSet[i]
-            self.priors.append(self.classSet[i]/self.total)            
+                feature.append(self.confidenceInter[i][j]/self.testClassSet[i])
+            self.confusionMatrix.append(feature)
+            self.numCorrect += self.confidenceInter[i][i]
 
 
     def sampleTest(self,sample):
+        maxID = 0
+        localMax = -99999
 
+        for i in range(numClass):
+            p = math.log(self.priors[i])
+            for j in range(numFeature):
+                pp = self.probTable[i][j]
+                if p < 0.00001:
+                    p = 0.00001
+                if p > 0.99999:
+                    p = 0.99999
+                if sample[j] == 1:
+                    p += math.log(pp)
+                if sample[j] == 0:
+                    p -= math.log(pp)
+            if localMax < p:
+                localMax = p
+                maxID = i
+            self.posterior.append(p)
+        return maxID
 
 
 
     def confusionMatrix(self,x,y):
+
+
+
 
 
 

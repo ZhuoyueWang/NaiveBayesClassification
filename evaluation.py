@@ -49,14 +49,13 @@ class DigitBayesClassification:
         for i in range(length):
             for j in range(width):
                 if trainData[i][j] == 1:
-                    self.probTable[int(trainLabel[i])][j] += 1.0
-            self.classSet[int(trainLabel[i])] += 1
+                    self.probTable[(trainLabel[i])][j] += 1.0
+            self.classSet[trainLabel[i]] += 1
 
         for i in range(self.numClass):
             for j in range(self.numFeature):
                 self.probTable[i][j] = self.probTable[i][j]/self.classSet[i]
             self.priors.append(self.classSet[i]/self.total)
-
 
     def sampleTest(self,sample):
         maxID = 0
@@ -66,14 +65,14 @@ class DigitBayesClassification:
             p = math.log(self.priors[i])
             for j in range(self.numFeature):
                 pp = self.probTable[i][j]
-                if p < 0.00001:
-                    p = 0.00001
-                if p > 0.99999:
-                    p = 0.99999
+                if pp < 0.00001:
+                    pp = 0.00001
+                elif pp > 0.99999:
+                    pp = 0.99999
                 if sample[j] == 1:
                     p += math.log(pp)
                 if sample[j] == 0:
-                    p -= math.log(pp)
+                    p += math.log(1-pp)
             if localMax < p:
                 localMax = p
                 maxID = i
@@ -96,8 +95,8 @@ class DigitBayesClassification:
         for i in range(length):
             pLabel = self.sampleTest(testData[i])
             self.probLabel.append(pLabel)
-            self.confidenceInter[int(self.testLabel[i])][pLabel] += 1
-            self.testClassSet[int(self.testLabel[i])] += 1
+            self.confidenceInter[self.testLabel[i]][pLabel] += 1
+            self.testClassSet[self.testLabel[i]] += 1
 
         for i in range(self.numClass):
             feature = []
@@ -115,19 +114,18 @@ class DigitBayesClassification:
         oddList = []
         print('High confusion rate to classify class {0} as class {1} is {2}'.format(x,y,self.confusionMatrix[x][y]))
 
+        print(self.probTable)
         for i in range(self.numFeature):
             p1 = self.probTable[x][i]
             p2 = self.probTable[y][i]
             if p1 < 0.00001:
                 p1 = 0.00001
-            if p1 < 0.99999:
+            elif p1 > 0.99999:
                 p1 = 0.99999
             if p2 < 0.00001:
                 p2 = 0.00001
-            if p2 > 0.99999:
+            elif p2 > 0.99999:
                 p2 = 0.99999
-            print(p1)
-            print(p2)
             p1List.append(math.log(p1))
             p2List.append(math.log(p2))
             oddList.append(math.log(p1)-math.log(p2))
@@ -182,18 +180,22 @@ def main():
     loc.close()
 
     for i in range(len(trainlabels)):
-        traindata = traindatas[i].strip()
-        trainlabel = trainlabels[i].strip()
-        if len(trainlabel) == 0:
+        traindata1 = traindatas[i].strip()
+        trainlabel1 = trainlabels[i].strip()
+        if len(trainlabel1) == 0:
             break
+        traindata = [int(i) for i in traindata1]
+        trainlabel = int(trainlabel1)
         digit.trainLabel.append(trainlabel)
         digit.trainSet.append(traindata)
 
     for i in range(len(testlabels)):
-        testdata = testdatas[i].strip()
-        testlabel = testlabels[i].strip()
-        if len(testlabel) == 0:
+        testdata1 = testdatas[i].strip()
+        testlabel1 = testlabels[i].strip()
+        if len(testlabel1) == 0:
             break
+        testdata = [int(i) for i in testdata1]
+        testlabel = int(testlabel1)
         digit.testLabel.append(testlabel)
         digit.testSet.append(testdata)
 
@@ -202,6 +204,7 @@ def main():
     digit.dataTest(digit.testSet)
 
     digit.printMatrix()
+
 
     print('total correct numbers: {}, with odd ratio: {}'.format(digit.numCorrect,digit.numCorrect/digit.total))
 

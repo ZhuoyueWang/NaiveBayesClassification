@@ -112,9 +112,9 @@ class DigitBayesClassification:
         p1List = []
         p2List = []
         oddList = []
-        print('High confusion rate to classify class {0} as class {1} is {2}'.format(x,y,self.confusionMatrix[x][y]))
+        print('High confusion rate to classify class {0} as class {1} is {2}'.format(x,y,round(self.confusionMatrix[x][y],5)))
 
-        print(self.probTable)
+        self.printTable()
         for i in range(self.numFeature):
             p1 = self.probTable[x][i]
             p2 = self.probTable[y][i]
@@ -132,17 +132,17 @@ class DigitBayesClassification:
 
         print('log likelihood for class 1:')
         for i in range(self.numFeature):
-            print(p1List[i], end= ' ')
+            print(round(p1List[i],5), end= ' ')
         print()
 
         print('log likelihood for class 2:')
         for i in range(self.numFeature):
-            print(p2List[i], end = ' ')
+            print(round(p2List[i],5), end = ' ')
         print()
 
         print('log odd ratio')
         for i in range(self.numFeature):
-            print(oddList[i], end = ' ')
+            print(round(oddList[i],5), end = ' ')
         print()
 
 
@@ -150,7 +150,7 @@ class DigitBayesClassification:
         print("confusion Matrix:")
         for i in range(self.numClass):
             for j in range(self.numFeature):
-                print(self.confusionMatrix[i][j], end = ',')
+                print(round(self.confusionMatrix[i][j],5), end = ',')
             print()
 
 
@@ -158,7 +158,7 @@ class DigitBayesClassification:
         print("Probability Table:")
         for i in range(self.numClass):
             for j in range(self.numFeature):
-                print(self.probTable[i][j], end = ',')
+                print(round(self.probTable[i][j],5), end = ',')
             print()
 
 

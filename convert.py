@@ -19,12 +19,12 @@ def convert(fileName):
     vectorFile = open('output.txt','w')
     for number in numbers:
         for pixel in number:
-            vectorFile.write(pixel+' ')
+            vectorFile.write(pixel)
         vectorFile.write('\n')
     vectorFile.close()
 
 def main():
-    convert("trainingimages")
+    convert("testimages")
 
 if __name__ == "__main__":
     main()

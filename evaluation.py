@@ -11,7 +11,7 @@ class DigitBayesClassification:
         self.falseNeg = 0
         self.numCorrect = 0
         self.numTest = 0
-        self.numClass = 0
+        self.numClass = 10
         self.numFeature = 0
         self.trainSet = []
         self.testSet = []
@@ -30,12 +30,13 @@ class DigitBayesClassification:
 
 
     def train(self,trainData,trainLabel):
-        loc = open(trainData,'r')
-        data = loc.readlines()
-        length = len(data)
+        length = len(trainData)
         self.total = length
-        width = len(data[0])
+        width = len(trainData[0])
         self.numFeature = width
+
+        print('length is {}'.format(length))
+        print('width is {}'.format(width))
         print('There are {} features in this dataset'.format(width))
 
         for i in range(self.numClass):
@@ -48,8 +49,8 @@ class DigitBayesClassification:
         for i in range(length):
             for j in range(width):
                 if trainData[i][j] == 1:
-                    self.probTable[trainLabel[i]][j] += 1.0
-            self.classSet[trainLabel[i]] += 1
+                    self.probTable[int(trainLabel[i])][j] += 1.0
+            self.classSet[int(trainLabel[i])] += 1
 
         for i in range(self.numClass):
             for j in range(self.numFeature):
@@ -57,42 +58,13 @@ class DigitBayesClassification:
             self.priors.append(self.classSet[i]/self.total)
 
 
-    def dataTest(self,testData):
-        loc = open(trainData,'r')
-        data = loc.readlines()
-        length = len(data)
-        self.numTest = length
-        width = len(data[0])
-        self.numFeature = width
-        self.numCorrect = 0
-        for i in range(self.numClass):
-            feature = []
-            for i in range(self.numFeature):
-                feature.append(0)
-            self.confidenceInter.append(feature)
-            self.testClassSet.append(0)
-
-        for i in range(length):
-            pLabel = sampleTest(testData[i])
-            self.probLabel.append(pLabel)
-            self.confidenceInter[self.testLabel[i]][pLabel] += 1
-            self.testClassSet[self.testLabel[i]] += 1
-
-        for i in range(self.numClass):
-            feature = []
-            for j in range(self.numFeature):
-                feature.append(self.confidenceInter[i][j]/self.testClassSet[i])
-            self.confusionMatrix.append(feature)
-            self.numCorrect += self.confidenceInter[i][i]
-
-
     def sampleTest(self,sample):
         maxID = 0
         localMax = -99999
 
-        for i in range(numClass):
+        for i in range(self.numClass):
             p = math.log(self.priors[i])
-            for j in range(numFeature):
+            for j in range(self.numFeature):
                 pp = self.probTable[i][j]
                 if p < 0.00001:
                     p = 0.00001
@@ -108,17 +80,44 @@ class DigitBayesClassification:
             self.posterior.append(p)
         return maxID
 
+    def dataTest(self,testData):
+        length = len(testData)
+        self.numTest = length
+        width = len(testData[0])
+        self.numFeature = width
+        self.numCorrect = 0
+        for i in range(self.numClass):
+            feature = []
+            for i in range(self.numFeature):
+                feature.append(0)
+            self.confidenceInter.append(feature)
+            self.testClassSet.append(0)
+
+        for i in range(length):
+            pLabel = self.sampleTest(testData[i])
+            self.probLabel.append(pLabel)
+            self.confidenceInter[int(self.testLabel[i])][pLabel] += 1
+            self.testClassSet[int(self.testLabel[i])] += 1
+
+        for i in range(self.numClass):
+            feature = []
+            for j in range(self.numFeature):
+                feature.append(self.confidenceInter[i][j]/self.testClassSet[i])
+            self.confusionMatrix.append(feature)
+            self.numCorrect += self.confidenceInter[i][i]
 
 
-    def confusionMatrix(self,x,y):
+
+
+    def getconfusionMatrix(self,x,y):
         p1List = []
         p2List = []
         oddList = []
         print('High confusion rate to classify class {0} as class {1} is {2}'.format(x,y,self.confusionMatrix[x][y]))
 
-        for i in range(numFeature):
-            p1 = probTable[x][i]
-            p2 = probTable[y][i]
+        for i in range(self.numFeature):
+            p1 = self.probTable[x][i]
+            p2 = self.probTable[y][i]
             if p1 < 0.00001:
                 p1 = 0.00001
             if p1 < 0.99999:
@@ -127,39 +126,41 @@ class DigitBayesClassification:
                 p2 = 0.00001
             if p2 > 0.99999:
                 p2 = 0.99999
+            print(p1)
+            print(p2)
             p1List.append(math.log(p1))
             p2List.append(math.log(p2))
             oddList.append(math.log(p1)-math.log(p2))
 
         print('log likelihood for class 1:')
-        for i in range(numFeature):
+        for i in range(self.numFeature):
             print(p1List[i], end= ' ')
         print()
 
         print('log likelihood for class 2:')
-        for i in range(numFeature):
+        for i in range(self.numFeature):
             print(p2List[i], end = ' ')
         print()
 
         print('log odd ratio')
-        for i in range(numFeature):
+        for i in range(self.numFeature):
             print(oddList[i], end = ' ')
         print()
 
 
     def printMatrix(self):
         print("confusion Matrix:")
-        for i in range(numClass):
-            for i in range(numFeature):
-                print(confusionMatrix[i][j], end = ',')
+        for i in range(self.numClass):
+            for j in range(self.numFeature):
+                print(self.confusionMatrix[i][j], end = ',')
             print()
 
 
     def printTable(self):
         print("Probability Table:")
-        for i in range(numClass):
-            for i in range(numFeature):
-                print(probTable[i][j], end = ',')
+        for i in range(self.numClass):
+            for j in range(self.numFeature):
+                print(self.probTable[i][j], end = ',')
             print()
 
 
@@ -167,13 +168,13 @@ class DigitBayesClassification:
 
 def main():
     digit = DigitBayesClassification()
-    loc = open('trainIamageOutput.txt','r')
+    loc = open('trainIamageOutput1.txt','r')
     traindatas = loc.readlines()
     loc.close()
     loc = open('traininglabels','r')
     trainlabels = loc.readlines()
     loc.close()
-    loc = open('testIamageOutput.txt','r')
+    loc = open('testIamageOutput1.txt','r')
     testdatas = loc.readlines()
     loc.close()
     loc = open('testlabels','r')
@@ -182,9 +183,7 @@ def main():
 
     for i in range(len(trainlabels)):
         traindata = traindatas[i].strip()
-        traindata = int(traindata)
         trainlabel = trainlabels[i].strip()
-        trainlabel = int(trainlabel)
         if len(trainlabel) == 0:
             break
         digit.trainLabel.append(trainlabel)
@@ -192,12 +191,10 @@ def main():
 
     for i in range(len(testlabels)):
         testdata = testdatas[i].strip()
-        testdata = int(testdata)
         testlabel = testlabels[i].strip()
-        testlabel = int(testlabel)
         if len(testlabel) == 0:
             break
-        digit.testLabel.append(testLabel)
+        digit.testLabel.append(testlabel)
         digit.testSet.append(testdata)
 
     digit.train(digit.trainSet,digit.trainLabel)
@@ -208,13 +205,13 @@ def main():
 
     print('total correct numbers: {}, with odd ratio: {}'.format(digit.numCorrect,digit.numCorrect/digit.total))
 
-    digit.confusionMatrix(8,9)
+    digit.getconfusionMatrix(8,9)
     print('\n')
-    digit.confusionMatrix(7,9)
+    digit.getconfusionMatrix(7,9)
     print('\n')
-    digit.confusionMatrix(4,9)
+    digit.getconfusionMatrix(4,9)
     print('\n')
-    digit.confusionMatrix(5,3)
+    digit.getconfusionMatrix(5,3)
     print('\n')
 
 

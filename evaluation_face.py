@@ -159,17 +159,17 @@ class FaceBayesClassification:
 
 
 def main():
-    digit = DigitBayesClassification()
-    loc = open('trainIamageOutput1.txt','r')
+    face = FaceBayesClassification()
+    loc = open('facedatatrainOutput.txt','r')
     traindatas = loc.readlines()
     loc.close()
-    loc = open('traininglabels','r')
+    loc = open('facedatatrainlabels','r')
     trainlabels = loc.readlines()
     loc.close()
-    loc = open('testIamageOutput1.txt','r')
+    loc = open('facedatasetOutput.txt','r')
     testdatas = loc.readlines()
     loc.close()
-    loc = open('testlabels','r')
+    loc = open('facedatatestlabels','r')
     testlabels = loc.readlines()
     loc.close()
 
@@ -178,27 +178,27 @@ def main():
         trainlabel1 = trainlabels[i].strip()
         traindata = [int(i) for i in traindata1]
         trainlabel = int(trainlabel1)
-        digit.trainLabel.append(trainlabel)
-        digit.trainSet.append(traindata)
+        face.trainLabel.append(trainlabel)
+        face.trainSet.append(traindata)
 
     for i in range(len(testlabels)):
         testdata1 = testdatas[i].strip()
         testlabel1 = testlabels[i].strip()
         testdata = [int(i) for i in testdata1]
         testlabel = int(testlabel1)
-        digit.testLabel.append(testlabel)
-        digit.testSet.append(testdata)
+        face.testLabel.append(testlabel)
+        face.testSet.append(testdata)
 
-    digit.train(digit.trainSet,digit.trainLabel)
-    digit.dataTest(digit.testSet)
-    digit.printMatrix()
+    face.train(digit.trainSet,digit.trainLabel)
+    face.dataTest(digit.testSet)
+    face.printMatrix()
     print()
-    digit.printTable()
+    face.printTable()
 
-    print('total correct numbers: {}, with odd ratio: {}'.format(digit.numCorrect,digit.numCorrect/digit.numTest))
+    print('total correct numbers: {}, with odd ratio: {}'.format(face.numCorrect,face.numCorrect/face.numTest))
 
     print('\n')
-    digit.getconfusionMatrix(3,2)
+    face.getconfusionMatrix(3,2)
     '''
     print('\n')
     digit.getconfusionMatrix(7,9)

@@ -1,7 +1,7 @@
 import numpy as np
 import math
 
-class DigitBayesClassification:
+class FaceBayesClassification:
 
     def __init__(self):
         self.total = 0

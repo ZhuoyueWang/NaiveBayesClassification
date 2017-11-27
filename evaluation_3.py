@@ -78,7 +78,7 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
         label = data_labels[i]
         for x in range(image_rows):
             for y in range(image_columns):
-                prob_table[int(label)][x][y] += int(data[x][y])
+                prob_table[label][x][y] += data[x][y]
 
     # Laplace Smoothing
     k = 0.1
@@ -87,7 +87,8 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
         for x in range(image_rows):
             for y in range(image_columns):
                 prob_table[i][x][y] += k
-                prob_table[i][x][y] = prob_table[i][x][y]/(data_depth+k*V)
+                prob_table[i][x][y] = prob_table[i][x][y]/(data_depth+k)
+
 
     [test_depth,test_rows, test_columns] = np.shape(image_test)
     posterior = []
@@ -125,7 +126,7 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
     totalAccuracy = 0
     for i in range(10):
         for j in range(10):
-            confusion[i][j] /= test_depth
+            confusion[i][j] /= len(test_labels)
             if i == j:
                 totalAccuracy += confusion[i][j]
     totalAccuracy /= 10

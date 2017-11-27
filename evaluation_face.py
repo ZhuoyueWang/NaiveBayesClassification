@@ -144,6 +144,10 @@ def face_classifier(image_data,data_labels,data_depth,image_test,test_labels,tes
                 totalAccuracy += confusion[i][j]
     totalAccuracy = round(totalAccuracy/2,2)
 
+    print("classification rates:")
+    for i in range(2):
+        print("{0}: {1}".format(i,confusion[i][i]))
+
     print("the confusion matrix is ")
     for i in range(2):
         for j in range(2):

@@ -144,6 +144,12 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
                 totalAccuracy += confusion[i][j]
     totalAccuracy = round(totalAccuracy/10,2)
 
+
+    print("classification rates:")
+    for i in range(10):
+        print("{0}: {1}".format(i,confusion[i][i]))
+
+
     print("the confusion matrix is ")
     for i in range(10):
         for j in range(10):

@@ -169,7 +169,7 @@ def face_classifier(image_data,data_labels,data_depth,image_test,test_labels,tes
         print("lowest posterior example")
         for a in range(70):
             for b in range(60):
-                print(image_test[(highPosteriorIndex[i])][a][b], end='')
+                print(image_test[(lowPosteriorIndex[i])][a][b], end='')
             print()
 
 

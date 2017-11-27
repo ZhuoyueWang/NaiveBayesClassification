@@ -90,7 +90,7 @@ def ternary_classifier(image_data,data_labels,data_depth,image_test,test_labels,
     # Laplace Smoothing
     k = 0.1
     V = 3
-    for i in range(len(prob_table1)):
+    for i in range(len(prob_table0)):
         for x in range(image_rows):
             for y in range(image_columns):
                 prob_table1[i][x][y] += k
@@ -98,7 +98,7 @@ def ternary_classifier(image_data,data_labels,data_depth,image_test,test_labels,
                 prob_table0[i][x][y] += k
                 prob_table0[i][x][y] = prob_table0[i][x][y]/(data_labels.count(i)+k*V)
                 prob_table2[i][x][y] += k
-                prob_table2[i][x][y] = prob_table0[i][x][y]/(data_labels.count(i)+k*V)
+                prob_table2[i][x][y] = prob_table2[i][x][y]/(data_labels.count(i)+k*V)
 
 
     [test_depth,test_rows, test_columns] = np.shape(image_test)

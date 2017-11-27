@@ -65,27 +65,35 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
 
     priors = [0 for i in range(10)]
     for i in data_labels:
-        priors[int(i)] += 1
+        priors[i] += 1
     for i in range(len(priors)):
         priors[i] /= data_depth
 
 
-    prob_table = [[[0 for k in range(image_columns)] for j in range(image_rows)] for i in range(10)]
+    prob_table1 = [[[0 for k in range(image_columns)] for j in range(image_rows)] for i in range(10)]
+    prob_table0 = [[[0 for k in range(image_columns)] for j in range(image_rows)] for i in range(10)]
 
     for i in range(data_depth):
         data = image_data[i]
         label = data_labels[i]
         for x in range(image_rows):
             for y in range(image_columns):
-                prob_table[label][x][y] += data[x][y]
+                if data[x][y] == 1:
+                    prob_table1[label][x][y] += 1
+                else:
+                    prob_table0[label][x][y] += 1
+
     # Laplace Smoothing
     k = 0.1
     V = 2
-    for i in range(len(prob_table)):
+    for i in range(len(prob_table1)):
         for x in range(image_rows):
             for y in range(image_columns):
-                prob_table[i][x][y] += k
-                prob_table[i][x][y] = prob_table[i][x][y]/(data_depth+k*V)
+                prob_table1[i][x][y] += k
+                prob_table1[i][x][y] = prob_table1[i][x][y]/(data_labels.count(i)+k*V)
+                prob_table0[i][x][y] += k
+                prob_table0[i][x][y] = prob_table0[i][x][y]/(data_labels.count(i)+k*V)
+
 
 
     [test_depth,test_rows, test_columns] = np.shape(image_test)
@@ -93,6 +101,7 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
 
     for i in range(test_depth):
         data = image_test[i]
+        data1 = image_data[i]
         localmax = -99999
         guessDigit = -1
         for a in range(10):
@@ -100,9 +109,11 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
             for x in range(test_rows):
                 for y in range(test_columns):
                     if data[x][y] == 1:
-                        likelyhood += math.log(prob_table[a][x][y])
+                        likelyhood += math.log(prob_table1[a][x][y])
+                    else:
+                        likelyhood += math.log(prob_table0[a][x][y])
             P = math.log(priors[a]) + likelyhood
-            if P > localmax:
+            if P >= localmax:
                 localmax = P
                 guessDigit = a
         posterior.append((guessDigit,localmax))
@@ -110,17 +121,28 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
 
     confusion = [[0 for x in range(10)] for y in range(10)]
     #row是实际值 col是learn的结果
-    highPosterior = [-9999 for i in range(1000)]
-    lowPosterior = [9999 for i in range(1000)]
+
+    highPosterior = [-9999 for i in range(10)]
+    highPosteriorIndex = [-9999 for i in range(10)]
+    lowPosterior = [9999 for i in range(10)]
+    lowPosteriorIndex = [9999 for i in range(10)]
+    for i in range(len(posterior)):
+        if posterior[i][1] > highPosterior[(posterior[i][0])] and posterior[i][0] == test_labels[i]:
+            highPosterior[(posterior[i][0])] = posterior[i][1]
+            highPosteriorIndex[(posterior[i][0])] = i
+        if posterior[i][1] < lowPosterior[(posterior[i][0])] and posterior[i][0] == test_labels[i]:
+            lowPosterior[(posterior[i][0])] = posterior[i][1]
+            lowPosteriorIndex[(posterior[i][0])] = i
+
     for i in range(len(test_labels)):
         confusion[test_labels[i]][posterior[i][0]] += 1
     totalAccuracy = 0
     for i in range(10):
         for j in range(10):
-            confusion[i][j] /= 100
+            confusion[i][j] = round(confusion[i][j]/test_labels.count(i),2)
             if i == j:
                 totalAccuracy += confusion[i][j]
-    totalAccuracy /= 10
+    totalAccuracy = round(totalAccuracy/10,2)
 
     print("the confusion matrix is ")
     print(confusion)

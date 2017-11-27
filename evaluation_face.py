@@ -1,213 +1,178 @@
 import numpy as np
 import math
-
-class FaceBayesClassification:
-
-    def __init__(self):
-        self.total = 0
-        self.numCorrect = 0
-        self.numTest = 0
-        self.numClass = 10
-        self.numFeature = 0
-        self.trainSet = []
-        self.testSet = []
-        self.probTable = []
-        self.trainLabel = []
-        self.testLabel = []
-        self.probLabel = []
-        self.classSet = []
-        self.testClassSet = []
-        self.confusionMatrix = []
-        self.priors = []
-        self.posterior = []
-        self.confidenceInter = []
-        self.pcp = []
-        self.ncp = []
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+from collections import deque
+import pprint
 
 
-    def train(self,trainData,trainLabel):
-        length = len(trainData)
-        self.total = length
-        width = len(trainData[0])
-        self.numFeature = width
-        print('There are {} features in this dataset'.format(width))
+def read_training_data():
+    trainingFile = open("facedatatrainOutput.txt", "r")
+    lines = trainingFile.readlines()
+    image_num = int(len(lines)/70)
+    image_data = []
+    for i in range(image_num):
+        data = []
+        for j in range(70*i,70*i+70):
+            line = lines[j]
+            line = line.rstrip('\n')
+            elem = [int(a) for a in line]
+            data.append(elem)
+        image_data.append(data)
 
-        for i in range(self.numClass):
-            feature = []
-            for i in range(self.numFeature):
-                feature.append(0)
-            self.probTable.append(feature)
-            self.classSet.append(0)
+    trainingLabel = open("facedatatrainlabels", "r")
+    labels = trainingLabel.readlines()
+    data_depth = len(labels)
+    data_labels = []
+    for i in range(len(labels)):
+        label = labels[i]
+        label = label.rstrip('\n')
+        data_labels.append(int(label))
 
-        for i in range(length):
-            for j in range(width):
-                if trainData[i][j] == 1:
-                    self.probTable[(trainLabel[i])][j] += 1.0
-            self.classSet[trainLabel[i]] += 1
-
-        for i in range(self.numClass):
-            for j in range(self.numFeature):
-                self.probTable[i][j] = self.probTable[i][j]/self.classSet[i]
-            self.priors.append(self.classSet[i]/self.total)
-
-    def sampleTest(self,sample):
-        maxID = 0
-        localMax = -9999999
-
-        for i in range(self.numClass):
-            p = math.log(self.priors[i])
-            for j in range(self.numFeature):
-                pp = self.probTable[i][j]
-                if pp < 0.00001:
-                    pp = 0.00001
-                if pp > 0.99999:
-                    pp = 0.99999
-                if sample[j] == 1:
-                    p += math.log(pp)
-                if sample[j] == 0:
-                    p += math.log(1-pp)
-            if localMax < p:
-                localMax = p
-                maxID = i
-            self.posterior.append(p)
-        return maxID
-
-    def dataTest(self,testData):
-        for i in range(self.numClass):
-            feature = []
-            for j in range(self.numClass):
-                feature.append(0)
-            self.confidenceInter.append(feature)
-            self.testClassSet.append(0)
-
-        length = len(testData)
-        self.numTest = length
-        width = len(testData[0])
-        self.numCorrect = 0
-
-        for i in range(length):
-            pLabel = self.sampleTest(testData[i])
-            self.probLabel.append(pLabel)
-            self.confidenceInter[self.testLabel[i]][pLabel] += 1
-            self.testClassSet[self.testLabel[i]] += 1
-
-        print("confidence")
-        print(self.confidenceInter)
-        for i in range(self.numClass):
-            feature = []
-            for j in range(self.numClass):
-                feature.append(self.confidenceInter[i][j]/self.testClassSet[i])
-            self.confusionMatrix.append(feature)
-            self.numCorrect += self.confidenceInter[i][i]
+    return image_data, data_labels, data_depth
 
 
 
+def read_test_data():
+    testFile = open("facedatasetOutput.txt", "r")
+    lines = testFile.readlines()
+    image_num = int(len(lines)/70)
+    image_test = []
+    for i in range(image_num):
+        data = []
+        for j in range(70 * i, 70 * i + 70):
+            line = lines[j]
+            line = line.rstrip('\n')
+            elem = [int(a) for a in line]
+            data.append(elem)
+        image_test.append(data)
 
-    def getconfusionMatrix(self,x,y):
-        p1List = []
-        p2List = []
-        oddList = []
-        print('High confusion rate to classify class {0} as class {1} is {2}'.format(x,y,round(self.confusionMatrix[x][y],2)))
+    testLabel = open("facedatatestlabels", "r")
+    labels = testLabel.readlines()
+    test_depth = len(labels)
+    test_labels = []
+    for i in range(len(labels)):
+        label = labels[i]
+        label = label.rstrip('\n')
+        test_labels.append(int(label))
 
-        for i in range(self.numFeature):
-            p1 = self.probTable[x][i]
-            p2 = self.probTable[y][i]
-            if p1 < 0.00001:
-                p1 = 0.00001
-            elif p1 > 0.99999:
-                p1 = 0.99999
-            if p2 < 0.00001:
-                p2 = 0.00001
-            elif p2 > 0.99999:
-                p2 = 0.99999
-            p1List.append(math.log(p1))
-            p2List.append(math.log(p2))
-            oddList.append(math.log(p1)-math.log(p2))
+    return image_test, test_labels, test_depth
 
-        print('log likelihood for class 1:')
-        for i in range(self.numFeature):
-            print(round(p1List[i],2), end= ' ')
+
+
+def face_classifier(image_data,data_labels,data_depth,image_test,test_labels,test_depth):
+    [image_depth,image_rows, image_columns] = np.shape(image_data)
+
+    priors = [0 for i in range(2)]
+    for i in data_labels:
+        priors[i] += 1
+    for i in range(len(priors)):
+        priors[i] /= data_depth
+
+
+    prob_table1 = [[[0 for k in range(image_columns)] for j in range(image_rows)] for i in range(2)]
+    prob_table0 = [[[0 for k in range(image_columns)] for j in range(image_rows)] for i in range(2)]
+
+    for i in range(data_depth):
+        data = image_data[i]
+        label = data_labels[i]
+        for x in range(image_rows):
+            for y in range(image_columns):
+                if data[x][y] == 1:
+                    prob_table1[label][x][y] += 1
+                else:
+                    prob_table0[label][x][y] += 1
+
+    # Laplace Smoothing
+    k = 0.1
+    V = 2
+    for i in range(len(prob_table1)):
+        for x in range(image_rows):
+            for y in range(image_columns):
+                prob_table1[i][x][y] += k
+                prob_table1[i][x][y] = prob_table1[i][x][y]/(data_labels.count(i)+k*V)
+                prob_table0[i][x][y] += k
+                prob_table0[i][x][y] = prob_table0[i][x][y]/(data_labels.count(i)+k*V)
+
+
+
+    [test_depth,test_rows, test_columns] = np.shape(image_test)
+    posterior = []
+
+    for i in range(test_depth):
+        data = image_test[i]
+        data1 = image_data[i]
+        localmax = -99999
+        guessDigit = -1
+        for a in range(2):
+            likelyhood = 0
+            for x in range(test_rows):
+                for y in range(test_columns):
+                    if data[x][y] == 1:
+                        likelyhood += math.log(prob_table1[a][x][y])
+                    else:
+                        likelyhood += math.log(prob_table0[a][x][y])
+            P = math.log(priors[a]) + likelyhood
+            if P >= localmax:
+                localmax = P
+                guessDigit = a
+        posterior.append((guessDigit,localmax))
+
+
+    confusion = [[0 for x in range(2)] for y in range(2)]
+    #row是实际值 col是learn的结果
+
+    highPosterior = [-9999 for i in range(2)]
+    highPosteriorIndex = [-9999 for i in range(2)]
+    lowPosterior = [9999 for i in range(2)]
+    lowPosteriorIndex = [9999 for i in range(2)]
+    for i in range(len(posterior)):
+        if posterior[i][1] > highPosterior[(posterior[i][0])] and posterior[i][0] == test_labels[i]:
+            highPosterior[(posterior[i][0])] = posterior[i][1]
+            highPosteriorIndex[(posterior[i][0])] = i
+        if posterior[i][1] < lowPosterior[(posterior[i][0])] and posterior[i][0] == test_labels[i]:
+            lowPosterior[(posterior[i][0])] = posterior[i][1]
+            lowPosteriorIndex[(posterior[i][0])] = i
+
+    for i in range(len(test_labels)):
+        confusion[test_labels[i]][posterior[i][0]] += 1
+    totalAccuracy = 0
+    for i in range(2):
+        for j in range(2):
+            confusion[i][j] = round(confusion[i][j]/test_labels.count(i),2)
+            if i == j:
+                totalAccuracy += confusion[i][j]
+    totalAccuracy = round(totalAccuracy/2,2)
+
+    print("the confusion matrix is ")
+    for i in range(2):
+        for j in range(2):
+            print(confusion[i][j], end=" ")
         print()
+    print("the total accuracy is ")
+    print(totalAccuracy)
 
-        print('log likelihood for class 2:')
-        for i in range(self.numFeature):
-            print(round(p2List[i],2), end = ' ')
+    print("each digit's examples on the highest and lowest posterior probabilities")
+    for i in range(2):
         print()
-
-        print('log odd ratio')
-        for i in range(self.numFeature):
-            print(round(oddList[i],2), end = ' ')
-        print()
-
-
-    def printMatrix(self):
-        print("Confusion Matrix:")
-        for i in range(self.numClass):
-            for j in range(self.numClass):
-                print(round(self.confusionMatrix[i][j],2), end = ',')
+        print("digit: {}".format(i))
+        print("highest posterior example")
+        for a in range(70):
+            for b in range(60):
+                print(image_test[(highPosteriorIndex[i])][a][b], end='')
             print()
-
-
-    def printTable(self):
-        print("Probability Table:")
-        for i in range(self.numClass):
-            for j in range(self.numFeature):
-                print(round(self.probTable[i][j],2), end = ',')
+        print()
+        print("lowest posterior example")
+        for a in range(70):
+            for b in range(60):
+                print(image_test[(highPosteriorIndex[i])][a][b], end='')
             print()
-
-
 
 
 def main():
-    face = FaceBayesClassification()
-    loc = open('facedatatrainOutput.txt','r')
-    traindatas = loc.readlines()
-    loc.close()
-    loc = open('facedatatrainlabels','r')
-    trainlabels = loc.readlines()
-    loc.close()
-    loc = open('facedatasetOutput.txt','r')
-    testdatas = loc.readlines()
-    loc.close()
-    loc = open('facedatatestlabels','r')
-    testlabels = loc.readlines()
-    loc.close()
+    image_data, data_labels,data_depth = read_training_data()
+    image_test, test_labels,test_depth = read_test_data()
+    result = face_classifier(image_data,data_labels,data_depth,image_test,test_labels,test_depth)
 
-    for i in range(len(trainlabels)):
-        traindata1 = traindatas[i].strip()
-        trainlabel1 = trainlabels[i].strip()
-        traindata = [int(i) for i in traindata1]
-        trainlabel = int(trainlabel1)
-        face.trainLabel.append(trainlabel)
-        face.trainSet.append(traindata)
-
-    for i in range(len(testlabels)):
-        testdata1 = testdatas[i].strip()
-        testlabel1 = testlabels[i].strip()
-        testdata = [int(i) for i in testdata1]
-        testlabel = int(testlabel1)
-        face.testLabel.append(testlabel)
-        face.testSet.append(testdata)
-
-    face.train(digit.trainSet,digit.trainLabel)
-    face.dataTest(digit.testSet)
-    face.printMatrix()
-    print()
-    face.printTable()
-
-    print('total correct numbers: {}, with odd ratio: {}'.format(face.numCorrect,face.numCorrect/face.numTest))
-
-    print('\n')
-    face.getconfusionMatrix(3,2)
-    '''
-    print('\n')
-    digit.getconfusionMatrix(7,9)
-    print('\n')
-    digit.getconfusionMatrix(4,9)
-    print('\n')
-    digit.getconfusionMatrix(5,3)
-    print('\n')
-    '''
-
-if __name__ == "__main__":
-    main()
+if __name__== "__main__":
+  main()

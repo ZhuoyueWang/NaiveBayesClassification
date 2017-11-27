@@ -1,5 +1,5 @@
 import numpy as np
-import mpmath as math
+import math
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 from collections import deque
@@ -68,8 +68,9 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
     priors = [0 for i in range(10)]
     for i in data_labels:
         priors[int(i)] += 1
-    for i in priors:
-        i /= data_depth
+    for i in range(len(priors)):
+        priors[i] /= data_depth
+
 
     prob_table = [[[0 for k in range(image_columns)] for j in range(image_rows)] for i in range(10)]
 
@@ -79,7 +80,6 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
         for x in range(image_rows):
             for y in range(image_columns):
                 prob_table[label][x][y] += data[x][y]
-
     # Laplace Smoothing
     k = 0.1
     V = 2
@@ -87,7 +87,7 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
         for x in range(image_rows):
             for y in range(image_columns):
                 prob_table[i][x][y] += k
-                prob_table[i][x][y] = prob_table[i][x][y]/(data_depth+k)
+                prob_table[i][x][y] = prob_table[i][x][y]/(priors[i]*data_depth+k*V)
 
 
     [test_depth,test_rows, test_columns] = np.shape(image_test)
@@ -103,7 +103,7 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
                 for y in range(test_columns):
                     if data[x][y] == 1:
                         likelyhood += math.log(prob_table[a][x][y])
-            P =  math.log(priors[a]) + likelyhood
+            P = math.log(priors[a]) + likelyhood
             if P > localmax:
                 localmax = P
                 guessDigit = a
@@ -112,21 +112,14 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
 
     confusion = [[0 for x in range(10)] for y in range(10)]
     #row是实际值 col是learn的结果
-    highPosterior = [-9999 for i in range(10)]
-    lowPosterior = [9999 for i in range(10)]
-    for i in test_labels:
-        for j in posterior:
-            confusion[i][j[0]] += 1
-            if i == j[0]:
-                if j[1] > highPosterior[i]:
-                    highPosterior[i] = j[1]
-                if j[1] < lowPosterior[i]:
-                    lowPosterior[i] = j[1]
-
+    highPosterior = [-9999 for i in range(1000)]
+    lowPosterior = [9999 for i in range(1000)]
+    for i in range(len(test_labels)):
+        confusion[test_labels[i]][posterior[i][0]] += 1
     totalAccuracy = 0
     for i in range(10):
         for j in range(10):
-            confusion[i][j] /= len(test_labels)
+            confusion[i][j] /= 100
             if i == j:
                 totalAccuracy += confusion[i][j]
     totalAccuracy /= 10

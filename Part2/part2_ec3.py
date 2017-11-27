@@ -76,41 +76,43 @@ def pre_process (data_set):
     [depth,rows, columns] = np.shape(data_set)
     processed = []
     for k in range(depth):
-        matrix = [[0 for x in range(columns)] for y in range(rows)]
+        matrix = [0 for y in range(rows)]
         data = data_set[k]
         for i in range(rows):
+            count = 0
             for j in range(columns):
                 if data[i][j] == '%':
-                    matrix[i][j] = 1
+                    count += 1
+            matrix[i] = count/ columns
         processed.append(matrix)
 
     return processed
 
-def part2_1_classifier(yes_data,no_data,yes_test,no_test):
-    [yes_depth,yes_rows, yes_columns] = np.shape(yes_data)
-    [no_depth,no_rows, no_columns] = np.shape(no_data)
+def part2_ec3_classifier(yes_data,no_data,yes_test,no_test):
+    [yes_depth,yes_rows] = np.shape(yes_data)
+    [no_depth,no_rows] = np.shape(no_data)
     prior_yes = yes_depth/(yes_depth+no_depth)
     prior_no = 1-prior_yes
-    prob_table_yes = [[0 for x in range(yes_columns)] for y in range(yes_rows)]
-    prob_table_no = [[0 for x in range(no_columns)] for y in range(no_rows)]
+    prob_table_yes = [[0 for x in range(11)] for y in range(yes_rows)]
+    prob_table_no = [[0 for x in range(11)] for y in range(no_rows)]
 
     for depth in range(yes_depth):
         data = yes_data[depth]
         for i in range(yes_rows):
-            for j in range(yes_columns):
-                prob_table_yes[i][j] += data[i][j]
+            ave_val = 10*data[i]
+            prob_table_yes[i][int(ave_val)] += 1
 
     for depth in range(no_depth):
         data = no_data[depth]
         for i in range(no_rows):
-            for j in range(no_columns):
-                prob_table_no[i][j] += data[i][j]
+            ave_val = 10 * data[i]
+            prob_table_no[i][int(ave_val)] += 1
 
     # Laplace Smoothing
     k = 3
-    V = 2
+    V = 11
     for i in range(yes_rows):
-        for j in range(yes_columns):
+        for j in range(11):
             prob_table_yes[i][j] += k
             prob_table_yes[i][j] = prob_table_yes[i][j]/(yes_depth+k*V)
             prob_table_no[i][j] += k
@@ -122,8 +124,8 @@ def part2_1_classifier(yes_data,no_data,yes_test,no_test):
     decision_no_test = []
     no_right_count = 0
     no_wrong_count = 0
-    [yes_test_depth,yes_test_rows, yes_test_columns] = np.shape(yes_test)
-    [no_test_depth,no_test_rows, no_test_columns] = np.shape(no_test)
+    [yes_test_depth,yes_test_rows] = np.shape(yes_test)
+    [no_test_depth,no_test_rows] = np.shape(no_test)
 
     # classify the yes_test data
     for depth in range(yes_test_depth):
@@ -131,13 +133,10 @@ def part2_1_classifier(yes_data,no_data,yes_test,no_test):
         likelyhood_yes = 0
         likelyhood_no = 0
         for i in range(yes_test_rows):
-            for j in range(yes_test_columns):
-                if data[i][j] == 1:
-                    likelyhood_yes += math.log(prob_table_yes[i][j])
-                    likelyhood_no += math.log(prob_table_no[i][j])
-                else:
-                    likelyhood_yes += math.log(1 - prob_table_yes[i][j])
-                    likelyhood_no += math.log(1 - prob_table_no[i][j])
+            ave_val = data[i]*10
+            likelyhood_yes += math.log(prob_table_yes[i][int(ave_val)])
+            likelyhood_no += math.log(prob_table_no[i][int(ave_val)])
+
         P_yes =  math.log(prior_yes) + likelyhood_yes
         P_no = math.log(prior_no) + likelyhood_no
         if P_yes>P_no:
@@ -153,13 +152,9 @@ def part2_1_classifier(yes_data,no_data,yes_test,no_test):
         likelyhood_yes = 0
         likelyhood_no = 0
         for i in range(no_test_rows):
-            for j in range(no_test_columns):
-                if data[i][j] == 1:
-                    likelyhood_yes += math.log(prob_table_yes[i][j])
-                    likelyhood_no += math.log(prob_table_no[i][j])
-                else:
-                    likelyhood_yes += math.log(1 - prob_table_yes[i][j])
-                    likelyhood_no += math.log(1 - prob_table_no[i][j])
+            ave_val = data[i] *10
+            likelyhood_yes += math.log(prob_table_yes[i][int(ave_val)])
+            likelyhood_no += math.log(prob_table_no[i][int(ave_val)])
         P_yes = math.log(prior_yes) + likelyhood_yes
         P_no = math.log(prior_no) + likelyhood_no
         if P_yes > P_no:
@@ -169,7 +164,8 @@ def part2_1_classifier(yes_data,no_data,yes_test,no_test):
         else:
             decision_no_test.append(0)
             no_right_count += 1
-
+    print(decision_yes_test)
+    print(decision_no_test)
     print("percentage of correctness for yes_test = " + str(yes_right_count / yes_test_depth))
     print("percentage of correctness for no_test = " + str(no_right_count / no_test_depth))
     confusion = [[0 for x in range(2)] for y in range(2)]
@@ -186,8 +182,11 @@ def part2_1_classifier(yes_data,no_data,yes_test,no_test):
 def main():
     yes_data,no_data = read_training_data()
     yes_test, no_test = read_test_data()
+    #print(yes_data,no_data)
+    #print(yes_test,no_test)
     start = time.time()
-    result = part2_1_classifier(yes_data,no_data,yes_test,no_test)
+
+    result = part2_ec3_classifier(yes_data,no_data,yes_test,no_test)
     end = time.time()
     print(end - start)
 if __name__== "__main__":

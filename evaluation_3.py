@@ -145,14 +145,97 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
     totalAccuracy = round(totalAccuracy/10,2)
 
     print("the confusion matrix is ")
-    print(confusion)
+    for i in range(10):
+        for j in range(10):
+            print(confusion[i][j], end=" ")
+        print()
     print("the total accuracy is ")
     print(totalAccuracy)
+    print("four pairs of digits that have the highest confusion rates:")
+    print("4 vs 9 | 5 vs 3 | 8 vs 3 | 7 vs 9")
+    print("4 vs 9's odd ratio:")
+    oddRatio = [[0 for k in range(test_columns)] for j in range(test_rows)]
+    for x in range(test_rows):
+        for y in range(test_columns):
+            temp4 = math.log(prob_table1[4][x][y])
+            temp9 = math.log(prob_table1[9][x][y])
+            oddRatio[x][y] = temp4/temp9
+    for x in range(test_rows):
+        for y in range(test_columns):
+            if oddRatio[x][y] > 1:
+                oddRatio[x][y] = '+'
+            elif oddRatio[x][y] > 0.8 and oddRatio[x][y] < 1.2:
+                oddRatio[x][y] = ' '
+            else:
+                oddRatio[x][y] = '-'
 
-    print("odd ratio:")
+    for i in range(28):
+        for j in range(28):
+            print(oddRatio[i][j], end = '')
+        print()
 
+    print("5 vs 3's odd ratio:")
+    oddRatio = [[0 for k in range(test_columns)] for j in range(test_rows)]
+    for x in range(test_rows):
+        for y in range(test_columns):
+            temp4 = math.log(prob_table1[5][x][y])
+            temp9 = math.log(prob_table1[3][x][y])
+            oddRatio[x][y] = temp4/temp9
+    for x in range(test_rows):
+        for y in range(test_columns):
+            if oddRatio[x][y] > 1:
+                oddRatio[x][y] = '+'
+            elif oddRatio[x][y] > 0.8 and oddRatio[x][y] < 1.2:
+                oddRatio[x][y] = ' '
+            else:
+                oddRatio[x][y] = '-'
 
+    for i in range(28):
+        for j in range(28):
+            print(oddRatio[i][j], end = '')
+        print()
 
+    print("8 vs 3's odd ratio:")
+    oddRatio = [[0 for k in range(test_columns)] for j in range(test_rows)]
+    for x in range(test_rows):
+        for y in range(test_columns):
+            temp4 = math.log(prob_table1[8][x][y])
+            temp9 = math.log(prob_table1[3][x][y])
+            oddRatio[x][y] = temp4/temp9
+    for x in range(test_rows):
+        for y in range(test_columns):
+            if oddRatio[x][y] > 1:
+                oddRatio[x][y] = '+'
+            elif oddRatio[x][y] > 0.8 and oddRatio[x][y] < 1.2:
+                oddRatio[x][y] = ' '
+            else:
+                oddRatio[x][y] = '-'
+
+    for i in range(28):
+        for j in range(28):
+            print(oddRatio[i][j], end = '')
+        print()
+
+    print("7 vs 9's odd ratio:")
+    oddRatio = [[0 for k in range(test_columns)] for j in range(test_rows)]
+    for x in range(test_rows):
+        for y in range(test_columns):
+            temp4 = math.log(prob_table1[7][x][y])
+            temp9 = math.log(prob_table1[9][x][y])
+            oddRatio[x][y] = temp4/temp9
+    for x in range(test_rows):
+        for y in range(test_columns):
+            if oddRatio[x][y] > 1:
+                oddRatio[x][y] = '+'
+            elif oddRatio[x][y] > 0.8 and oddRatio[x][y] < 1.2:
+                oddRatio[x][y] = ' '
+            else:
+                oddRatio[x][y] = '-'
+
+    for i in range(28):
+        for j in range(28):
+            print(oddRatio[i][j], end = '')
+        print()
 
 def main():
     image_data, data_labels,data_depth = read_training_data()

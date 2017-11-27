@@ -19,7 +19,6 @@ def read_training_data():
             elem = [int(a) for a in line]
             data.append(elem)
         image_data.append(data)
-    print(np.shape(image_data))
 
     trainingLabel = open("traininglabels", "r")
     labels = trainingLabel.readlines()
@@ -47,7 +46,6 @@ def read_test_data():
             elem = [int(a) for a in line]
             data.append(elem)
         image_test.append(data)
-    print(np.shape(image_test))
 
     testLabel = open("testlabels", "r")
     labels = testLabel.readlines()
@@ -74,7 +72,7 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
 
     prob_table = [[[0 for k in range(image_columns)] for j in range(image_rows)] for i in range(10)]
 
-    for i in range(image_depth):
+    for i in range(data_depth):
         data = image_data[i]
         label = data_labels[i]
         for x in range(image_rows):
@@ -87,7 +85,7 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
         for x in range(image_rows):
             for y in range(image_columns):
                 prob_table[i][x][y] += k
-                prob_table[i][x][y] = prob_table[i][x][y]/(priors[i]*data_depth+k*V)
+                prob_table[i][x][y] = prob_table[i][x][y]/(data_depth+k*V)
 
 
     [test_depth,test_rows, test_columns] = np.shape(image_test)

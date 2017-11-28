@@ -139,10 +139,10 @@ def part1_1_classifier(image_data,data_labels,data_depth,image_test,test_labels,
     totalAccuracy = 0
     for i in range(10):
         for j in range(10):
-            confusion[i][j] = round(confusion[i][j]/test_labels.count(i),2)
+            confusion[i][j] = round(confusion[i][j]/test_labels.count(i),4)
             if i == j:
                 totalAccuracy += confusion[i][j]
-    totalAccuracy = round(totalAccuracy/10,2)
+    totalAccuracy = round(totalAccuracy/10,4)
 
 
     print("classification rates:")

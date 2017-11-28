@@ -139,10 +139,10 @@ def face_classifier(image_data,data_labels,data_depth,image_test,test_labels,tes
     totalAccuracy = 0
     for i in range(2):
         for j in range(2):
-            confusion[i][j] = round(confusion[i][j]/test_labels.count(i),2)
+            confusion[i][j] = round(confusion[i][j]/test_labels.count(i),4)
             if i == j:
                 totalAccuracy += confusion[i][j]
-    totalAccuracy = round(totalAccuracy/2,2)
+    totalAccuracy = round(totalAccuracy/2,4)
 
     print("classification rates:")
     for i in range(2):

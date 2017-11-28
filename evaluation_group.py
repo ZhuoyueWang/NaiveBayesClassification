@@ -7,7 +7,7 @@ import pprint
 
 
 def read_training_data():
-    trainingFile = open("trainIamageOutput2.txt", "r")
+    trainingFile = open("trainIamageOutput1.txt", "r")
     lines = trainingFile.readlines()
     image_num = int(len(lines)/28)
     image_data = []
@@ -34,7 +34,7 @@ def read_training_data():
 
 
 def read_test_data():
-    testFile = open("testIamageOutput2.txt", "r")
+    testFile = open("testIamageOutput1.txt", "r")
     lines = testFile.readlines()
     image_num = int(len(lines)/28)
     image_test = []
@@ -60,7 +60,7 @@ def read_test_data():
 
 
 
-def ternary_classifier(image_data,data_labels,data_depth,image_test,test_labels,test_depth):
+def part1_2_classifier_disjoint(image_data,data_labels,data_depth,image_test,test_labels,test_depth, length, width):
     [image_depth,image_rows, image_columns] = np.shape(image_data)
 
     priors = [0 for i in range(10)]
@@ -69,56 +69,61 @@ def ternary_classifier(image_data,data_labels,data_depth,image_test,test_labels,
     for i in range(len(priors)):
         priors[i] /= data_depth
 
-
-    prob_table1 = [[[0 for k in range(image_columns)] for j in range(image_rows)] for i in range(10)]
-    prob_table0 = [[[0 for k in range(image_columns)] for j in range(image_rows)] for i in range(10)]
-    prob_table2 = [[[0 for k in range(image_columns)] for j in range(image_rows)] for i in range(10)]
-
+    num_features = math.pow(10, length*width)
+    num_features = int(num_features)
+    prob_table = [[[[0 for f in range(num_features)] for k in range(image_columns)] for j in range(image_rows)] for i in range(10)]
+    totals = []
     for i in range(data_depth):
         data = image_data[i]
         label = data_labels[i]
-        for x in range(image_rows):
-            for y in range(image_columns):
-                if data[x][y] == 1:
-                    prob_table1[label][x][y] += 1
-                elif data[x][y] == 0:
-                    prob_table0[label][x][y] += 1
-                else:
-                    prob_table2[label][x][y] += 1
-
+        for x in range(0, image_rows-length, length):
+            for y in range(0, image_columns-width, width):
+                value = 1;
+                total = 0;
+                for l in range(length):
+                    for w in range(width):
+                        #print("value")
+                        if data[x+length][y+width] == 1:
+                            total += value;
+                        value *= 10;
+                totals.append(total)
+                prob_table[label][x][y][total] += 1
 
     # Laplace Smoothing
-    k = 0.1
-    V = 3
-    for i in range(len(prob_table0)):
-        for x in range(image_rows):
-            for y in range(image_columns):
-                prob_table1[i][x][y] += k
-                prob_table1[i][x][y] = prob_table1[i][x][y]/(data_labels.count(i)+k*V)
-                prob_table0[i][x][y] += k
-                prob_table0[i][x][y] = prob_table0[i][x][y]/(data_labels.count(i)+k*V)
-                prob_table2[i][x][y] += k
-                prob_table2[i][x][y] = prob_table2[i][x][y]/(data_labels.count(i)+k*V)
+
+    k = 0.01
+    V = 2
+    for i in range(len(prob_table)):
+        digit_total = data_labels.count(i)+k*V
+        for x in range(0, image_rows-length, length):
+            for y in range(0, image_columns-wid, width):
+                for f in totals:
+                        print("smoothing")
+                        prob_table[i][x][y][f] += k
+                        prob_table[i][x][y][f] = prob_table[i][x][y][f]/digit_total
 
 
     [test_depth,test_rows, test_columns] = np.shape(image_test)
     posterior = []
 
     for i in range(test_depth):
+        #print("test here")
         data = image_test[i]
         data1 = image_data[i]
         localmax = -99999
         guessDigit = -1
         for a in range(10):
             likelyhood = 0
-            for x in range(test_rows):
-                for y in range(test_columns):
-                    if data[x][y] == 1:
-                        likelyhood += math.log(prob_table1[a][x][y])
-                    elif data[x][y] == 0:
-                        likelyhood += math.log(prob_table0[a][x][y])
-                    else:
-                        likelyhood += math.log(prob_table2[a][x][y])
+            for x in range(0, test_rows-length, length):
+                for y in range(0, test_columns-width, width):
+                    value = 1;
+                    total = 0;
+                    for l in range(length):
+                        for w in range(width):
+                            if data[x+length][y+width] == 1:
+                                total += value;
+                            value *= 10;
+                    likelyhood += math.log(prob_table[a][x][y][total])
             P = math.log(priors[a]) + likelyhood
             if P >= localmax:
                 localmax = P
@@ -129,10 +134,10 @@ def ternary_classifier(image_data,data_labels,data_depth,image_test,test_labels,
     confusion = [[0 for x in range(10)] for y in range(10)]
     #row是实际值 col是learn的结果
 
-    highPosterior = [-999999 for i in range(10)]
-    highPosteriorIndex = [-1 for i in range(10)]
-    lowPosterior = [999999 for i in range(10)]
-    lowPosteriorIndex = [-1 for i in range(10)]
+    highPosterior = [-9999 for i in range(10)]
+    highPosteriorIndex = [-9999 for i in range(10)]
+    lowPosterior = [9999 for i in range(10)]
+    lowPosteriorIndex = [9999 for i in range(10)]
     for i in range(len(posterior)):
         if posterior[i][1] > highPosterior[(posterior[i][0])] and posterior[i][0] == test_labels[i]:
             highPosterior[(posterior[i][0])] = posterior[i][1]
@@ -164,27 +169,12 @@ def ternary_classifier(image_data,data_labels,data_depth,image_test,test_labels,
     print("the total accuracy is ")
     print(totalAccuracy)
 
-    print("each digit's examples on the highest and lowest posterior probabilities")
-    for i in range(10):
-        print()
-        print("digit: {}".format(i))
-        print("highest posterior example")
-        for a in range(28):
-            for b in range(28):
-                print(image_test[(highPosteriorIndex[i])][a][b], end='')
-            print()
-        print()
-        print("lowest posterior example")
-        for a in range(28):
-            for b in range(28):
-                print(image_test[(lowPosteriorIndex[i])][a][b], end='')
-            print()
 
 
 def main():
     image_data, data_labels,data_depth = read_training_data()
     image_test, test_labels,test_depth = read_test_data()
-    result = ternary_classifier(image_data,data_labels,data_depth,image_test,test_labels,test_depth)
+    result = part1_2_classifier_disjoint(image_data,data_labels,data_depth,image_test,test_labels,test_depth, 2, 2)
 
 if __name__== "__main__":
   main()

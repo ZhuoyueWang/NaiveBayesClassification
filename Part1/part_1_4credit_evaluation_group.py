@@ -63,21 +63,21 @@ def read_test_data():
 
 def part1_2_classifier_disjoint(image_data,data_labels,data_depth,image_test,test_labels,test_depth, length, width):
     [image_depth,image_rows, image_columns] = np.shape(image_data)
-
+    start_time = time.time()
     priors = [0 for i in range(10)]
     for i in data_labels:
         priors[i] += 1
     for i in range(len(priors)):
         priors[i] /= data_depth
 
-    num_features = math.pow(10, length*width)
+    num_features = math.pow(2, length*width)
     num_features = int(num_features)
     print(num_features)
     prob_table = [[[[0 for f in range(num_features)] for k in range(image_columns)] for j in range(image_rows)] for i in range(10)]
-    print("HERE")
+    #print("HERE")
     totals = []
     for i in range(data_depth):
-        print(i)
+        #print(i)
         data = image_data[i]
         label = data_labels[i]
         for x in range(0, image_rows-length, length):
@@ -88,11 +88,27 @@ def part1_2_classifier_disjoint(image_data,data_labels,data_depth,image_test,tes
                     for w in range(width):
                         #print("value")
                         if data[x+l][y+w] == 1:
-                            total += value;
-                        value *= 10;
+                            total += value
+                        value *= 10
                 if(total not in totals):
                     totals.append(total)
-                prob_table[label][x][y][total] += 1
+        totals.sort()
+    for i in range(data_depth):
+        #print(i)
+        data = image_data[i]
+        label = data_labels[i]
+        for x in range(0, image_rows-length, length):
+            for y in range(0, image_columns-width, width):
+                value = 1;
+                total = 0;
+                for l in range(length):
+                    for w in range(width):
+                        #print("value")
+                        if data[x+l][y+w] == 1:
+                            total += value
+                        value *= 10
+                position = totals.index(total)
+                prob_table[label][x][y][position] += 1
 
     # Laplace Smoothing
     print(len(totals))
@@ -103,14 +119,15 @@ def part1_2_classifier_disjoint(image_data,data_labels,data_depth,image_test,tes
         print(i)
         for x in range(0, image_rows-length, length):
             for y in range(0, image_columns-width, width):
-                for f in totals:
+                for f in range(len(totals)):
                         prob_table[i][x][y][f] += k
                         prob_table[i][x][y][f] = prob_table[i][x][y][f]/digit_total
 
 
     [test_depth,test_rows, test_columns] = np.shape(image_test)
     posterior = []
-
+    print("---training %s seconds ---" % (time.time() - start_time))
+    start_time = time.time()
     for i in range(test_depth):
         #print("test here")
         data = image_test[i]
@@ -126,15 +143,20 @@ def part1_2_classifier_disjoint(image_data,data_labels,data_depth,image_test,tes
                     for l in range(length):
                         for w in range(width):
                             if data[x+l][y+w] == 1:
-                                total += value;
-                            value *= 10;
-                    likelyhood += math.log(prob_table[a][x][y][total])
+                                total += value
+                            value *= 10
+                    if total in totals:
+                        position = totals.index(total)
+                        likelyhood += math.log(prob_table[a][x][y][position])
+                    else:
+                        likelyhood += math.log(k/(data_labels.count(a)+k*V))
             P = math.log(priors[a]) + likelyhood
             if P >= localmax:
                 localmax = P
                 guessDigit = a
         posterior.append((guessDigit,localmax))
 
+    print("---testing %s seconds ---" % (time.time() - start_time))
 
     confusion = [[0 for x in range(10)] for y in range(10)]
     #row是实际值 col是learn的结果
@@ -176,20 +198,21 @@ def part1_2_classifier_disjoint(image_data,data_labels,data_depth,image_test,tes
 
 def part1_2_classifier_overlap(image_data,data_labels,data_depth,image_test,test_labels,test_depth, length, width):
     [image_depth,image_rows, image_columns] = np.shape(image_data)
-
+    start_time = time.time()
     priors = [0 for i in range(10)]
     for i in data_labels:
         priors[i] += 1
     for i in range(len(priors)):
         priors[i] /= data_depth
 
-    num_features = math.pow(10, length*width)
+    num_features = math.pow(2, length*width)
     num_features = int(num_features)
     print(num_features)
     prob_table = [[[[0 for f in range(num_features)] for k in range(image_columns)] for j in range(image_rows)] for i in range(10)]
-    print("HERE")
+    #print("HERE")
     totals = []
     for i in range(data_depth):
+        #print(i)
         data = image_data[i]
         label = data_labels[i]
         for x in range(image_rows-length):
@@ -200,11 +223,27 @@ def part1_2_classifier_overlap(image_data,data_labels,data_depth,image_test,test
                     for w in range(width):
                         #print("value")
                         if data[x+l][y+w] == 1:
-                            total += value;
-                        value *= 10;
+                            total += value
+                        value *= 10
                 if(total not in totals):
                     totals.append(total)
-                prob_table[label][x][y][total] += 1
+        totals.sort()
+    for i in range(data_depth):
+        #print(i)
+        data = image_data[i]
+        label = data_labels[i]
+        for x in range(image_rows-length):
+            for y in range(image_columns-width):
+                value = 1;
+                total = 0;
+                for l in range(length):
+                    for w in range(width):
+                        #print("value")
+                        if data[x+l][y+w] == 1:
+                            total += value
+                        value *= 10
+                position = totals.index(total)
+                prob_table[label][x][y][position] += 1
 
     # Laplace Smoothing
     print(len(totals))
@@ -215,14 +254,16 @@ def part1_2_classifier_overlap(image_data,data_labels,data_depth,image_test,test
         print(i)
         for x in range(image_rows-length):
             for y in range(image_columns-width):
-                for f in totals:
+                for f in range(len(totals)):
                         prob_table[i][x][y][f] += k
                         prob_table[i][x][y][f] = prob_table[i][x][y][f]/digit_total
 
 
     [test_depth,test_rows, test_columns] = np.shape(image_test)
     posterior = []
+    print("---training %s seconds ---" % (time.time() - start_time))
 
+    start_time = time.time()
     for i in range(test_depth):
         #print("test here")
         data = image_test[i]
@@ -238,15 +279,20 @@ def part1_2_classifier_overlap(image_data,data_labels,data_depth,image_test,test
                     for l in range(length):
                         for w in range(width):
                             if data[x+l][y+w] == 1:
-                                total += value;
-                            value *= 10;
-                    likelyhood += math.log(prob_table[a][x][y][total])
+                                total += value
+                            value *= 10
+                    if total in totals:
+                        position = totals.index(total)
+                        likelyhood += math.log(prob_table[a][x][y][position])
+                    else:
+                        likelyhood += math.log(k/(data_labels.count(a)+k*V))
             P = math.log(priors[a]) + likelyhood
             if P >= localmax:
                 localmax = P
                 guessDigit = a
         posterior.append((guessDigit,localmax))
 
+    print("---testing %s seconds ---" % (time.time() - start_time))
 
     confusion = [[0 for x in range(10)] for y in range(10)]
     #row是实际值 col是learn的结果
@@ -291,7 +337,7 @@ def main():
     image_data, data_labels,data_depth = read_training_data()
     image_test, test_labels,test_depth = read_test_data()
     start_time = time.time()
-    result = part1_2_classifier_disjoint(image_data,data_labels,data_depth,image_test,test_labels,test_depth, 4, 2)
+    result = part1_2_classifier_disjoint(image_data,data_labels,data_depth,image_test,test_labels,test_depth, 4, 4)
     print("--- %s seconds ---" % (time.time() - start_time))
 
 if __name__== "__main__":

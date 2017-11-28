@@ -83,7 +83,7 @@ def part1_2_classifier_disjoint(image_data,data_labels,data_depth,image_test,tes
                 for l in range(length):
                     for w in range(width):
                         #print("value")
-                        if data[x+length][y+width] == 1:
+                        if data[x+l][y+w] == 1:
                             total += value;
                         value *= 10;
                 totals.append(total)
@@ -96,9 +96,9 @@ def part1_2_classifier_disjoint(image_data,data_labels,data_depth,image_test,tes
     for i in range(len(prob_table)):
         digit_total = data_labels.count(i)+k*V
         for x in range(0, image_rows-length, length):
-            for y in range(0, image_columns-wid, width):
+            for y in range(0, image_columns-width, width):
                 for f in totals:
-                        print("smoothing")
+                        print(f)
                         prob_table[i][x][y][f] += k
                         prob_table[i][x][y][f] = prob_table[i][x][y][f]/digit_total
 
@@ -120,7 +120,7 @@ def part1_2_classifier_disjoint(image_data,data_labels,data_depth,image_test,tes
                     total = 0;
                     for l in range(length):
                         for w in range(width):
-                            if data[x+length][y+width] == 1:
+                            if data[x+l][y+w] == 1:
                                 total += value;
                             value *= 10;
                     likelyhood += math.log(prob_table[a][x][y][total])

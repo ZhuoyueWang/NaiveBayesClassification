@@ -127,7 +127,6 @@ def ternary_classifier(image_data,data_labels,data_depth,image_test,test_labels,
 
 
     confusion = [[0 for x in range(10)] for y in range(10)]
-    #row是实际值 col是learn的结果
 
     highPosterior = [-999999 for i in range(10)]
     highPosteriorIndex = [-1 for i in range(10)]

@@ -159,7 +159,6 @@ def part1_2_classifier_disjoint(image_data,data_labels,data_depth,image_test,tes
     print("---testing %s seconds ---" % (time.time() - start_time))
 
     confusion = [[0 for x in range(10)] for y in range(10)]
-    #row是实际值 col是learn的结果
 
     highPosterior = [-9999 for i in range(10)]
     highPosteriorIndex = [-9999 for i in range(10)]
@@ -295,7 +294,6 @@ def part1_2_classifier_overlap(image_data,data_labels,data_depth,image_test,test
     print("---testing %s seconds ---" % (time.time() - start_time))
 
     confusion = [[0 for x in range(10)] for y in range(10)]
-    #row是实际值 col是learn的结果
 
     highPosterior = [-9999 for i in range(10)]
     highPosteriorIndex = [-9999 for i in range(10)]

@@ -63,7 +63,7 @@ def part2_2_classifier(training_data,testing_data):
 
 
     # Laplace Smoothing
-    k = 0.7
+    k = 3
     V = 2
     for idx in range(num):
         for i in range(train_rows):
@@ -114,5 +114,6 @@ def main():
     training_data = read_data("training_data.txt","training_labels.txt")
     testing_data = read_data("testing_data.txt", "testing_labels.txt")
     result = part2_2_classifier(training_data,testing_data)
+
 if __name__== "__main__":
   main()

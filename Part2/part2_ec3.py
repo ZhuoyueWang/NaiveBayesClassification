@@ -168,6 +168,8 @@ def part2_ec3_classifier(yes_data,no_data,yes_test,no_test):
     print(decision_no_test)
     print("percentage of correctness for yes_test = " + str(yes_right_count / yes_test_depth))
     print("percentage of correctness for no_test = " + str(no_right_count / no_test_depth))
+    print("the overall correctness = " + str((yes_right_count+no_right_count) / (yes_test_depth+no_test_depth)))
+
     confusion = [[0 for x in range(2)] for y in range(2)]
     confusion[0][0] = yes_right_count / yes_test_depth
     confusion[0][1] = yes_wrong_count / yes_test_depth
@@ -188,6 +190,6 @@ def main():
 
     result = part2_ec3_classifier(yes_data,no_data,yes_test,no_test)
     end = time.time()
-    print(end - start)
+    print("time taken: " ,str(end - start))
 if __name__== "__main__":
   main()

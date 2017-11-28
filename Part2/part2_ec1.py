@@ -4,72 +4,86 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from collections import deque
 import time
+import os
 
 def read_training_data():
-    trainingFile = open("yes_train.txt", "r")
-    lines = trainingFile.readlines()
-    yes_num = int(len(lines)/28)
     yes_data = []
-    for i in range(yes_num):
-        data = []
-        for j in range(28*i,28*i+25):
-            line = lines[j]
-            line = line.rstrip('\n')
-            elem = [i for i in line]
-            data.append(elem)
-        yes_data.append(data)
-    print(yes_data)
-    yes_data = pre_process(yes_data)
-    print(np.shape(yes_data))
-
-    trainingFile = open("no_train.txt", "r")
-    lines = trainingFile.readlines()
-    no_num = int(len(lines) / 28)
     no_data = []
-    for i in range(no_num):
-        data = []
-        for j in range(28 * i, 28 * i + 25):
-            line = lines[j]
-            line = line.rstrip('\n')
-            elem = [i for i in line]
-            data.append(elem)
-        no_data.append(data)
+
+    for subdir, dirs, files in os.walk('/Users/apple/Box Sync/CS 440/MP3/Part2/txt_yesno/training'):
+
+        for file in files:
+            name = file
+            #print(name)
+            name = name.replace("_", "")
+            name = name.replace(".txt", "")
+            #print(name)
+            trainingFile = open(subdir + '/' + file, 'r')
+            lines = trainingFile.readlines()
+            num = int(len(name))
+            #print(num)
+            #print(name)
+            if name[0] =="0":
+                take = 29
+            else:
+                take = 24
+            for i in range(num):
+                data = []
+                for j in range(25):
+                    line = lines[j]
+                    #print(len(line))
+                    line = line.rstrip('\n')
+                    writeline = []
+                    for k in range(10):
+                        elem = line[i*num + k+take]
+                        writeline.append(elem)
+                    data.append(writeline)
+                #print(data)
+
+                if name[i] == "1":
+                    yes_data.append(data)
+                else:
+                    no_data.append(data)
+    yes_data = pre_process(yes_data)
+
     no_data = pre_process(no_data)
-    print(np.shape(no_data))
+    #print(np.shape(yes_data))
+
+    #print(np.shape(no_data))
 
     return yes_data,no_data
 
 def read_test_data():
-
-    testFile = open("yes_test.txt", "r")
-    lines = testFile.readlines()
-    yes_num = int(len(lines) / 28)
     yes_test = []
-    for i in range(yes_num):
-        data = []
-        for j in range(28 * i, 28 * i + 25):
-            line = lines[j]
-            line = line.rstrip('\n')
-            elem = [i for i in line]
-            data.append(elem)
-        yes_test.append(data)
-    yes_test = pre_process(yes_test)
-    print(np.shape(yes_test))
-
-    testFile = open("no_test.txt", "r")
-    lines = testFile.readlines()
-    no_num = int(len(lines) / 28)
     no_test = []
-    for i in range(no_num):
-        data = []
-        for j in range(28 * i, 28 * i + 25):
-            line = lines[j]
-            line = line.rstrip('\n')
-            elem = [i for i in line]
-            data.append(elem)
-        no_test.append(data)
-    no_test = pre_process(no_test)
-    print(np.shape(no_test))
+    for subdir, dirs, files in os.walk('/Users/apple/Box Sync/CS 440/MP3/Part2/txt_yesno/yes_test'):
+        for file in files:
+            testFile = open(subdir + '/' + file, 'r')
+            lines = testFile.readlines()
+            data = []
+            for j in range(25):
+                line = lines[j]
+                line = line.rstrip('\n')
+                elem = [i for i in line]
+                data.append(elem)
+            yes_test.append(data)
+        yes_test = pre_process(yes_test)
+        #print(np.shape(yes_test))
+
+    for subdir, dirs, files in os.walk('/Users/apple/Box Sync/CS 440/MP3/Part2/txt_yesno/no_test'):
+        for file in files:
+            testFile = open(subdir + '/' + file, 'r')
+            lines = testFile.readlines()
+            data = []
+            for j in range(25):
+                line = lines[j]
+                line = line.rstrip('\n')
+                elem = [i for i in line]
+                data.append(elem)
+            no_test.append(data)
+        no_test = pre_process(no_test)
+        #print(np.shape(no_test))
+
 
     return yes_test,no_test
 
@@ -170,7 +184,7 @@ def part2_1_classifier(yes_data,no_data,yes_test,no_test):
         else:
             decision_no_test.append(0)
             no_right_count += 1
-
+    #print(decision_no_test)
     print("percentage of correctness for yes_test = " + str(yes_right_count / yes_test_depth))
     print("percentage of correctness for no_test = " + str(no_right_count / no_test_depth))
     print("the overall correctness = " + str((yes_right_count+no_right_count) / (yes_test_depth+no_test_depth)))
